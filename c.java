@@ -21,7 +21,7 @@ public class Client
 		socket = null;
 		pw = null;
 		br = null;
-		// the bri is for user input, br is used for  sending requests throught socket.
+		// the bri is for user input, br is used for sending requests throught socket.
 		bri = new BufferedReader(new InputStreamReader(System.in));
 
 		//creation of the files that will be shared.
@@ -39,6 +39,7 @@ public class Client
 
 	public void signIN() {
 		signin = "Signin "+listOfFiles;
+		// sends the message over the socket.
 		pw.println(signin);
 		pw.flush();
 		System.out.println("Declaring files..");
@@ -61,7 +62,7 @@ public class Client
 			System.exit(-1);
 		}
 
-		}
+	}
 
 	public void searchMode() {
 
@@ -72,9 +73,11 @@ public class Client
 			srep = "";
 
 			try {
-				data = bri.readLine();
-				tmpr = data.toCharArray();
+				data = bri.readLine();       //reads line.
+				tmpr = data.toCharArray();	// data to character arrau.
+				
 
+				//checking if this was the signout command
 				if(tmpr[0] == 's' && tmpr[1] =='i' && tmpr[2]=='g' && tmpr[3]=='n' && tmpr[4] == 'o' && tmpr[5]=='u' && tmpr[6] == 't') {
 					dt2 = "signout";
 					System.out.println(dt2);
@@ -82,17 +85,20 @@ public class Client
 					pw.flush();
 					break;	
 				}
-
+				
+				//creation of message to be sent.
 				dt2 = "search "+data;
 				System.out.println(dt2);
 				pw.println(dt2);
 				pw.flush();
 				str = "";
+
+				//read the reply from the Server.
 				srep = br.readLine(); /// to flush the empty line :)
 				srep = br.readLine();
 				System.out.println("---RESULTS---");
-				freply = srep.substring(7); 
-				stoken = new StringTokenizer(freply, ",");	
+				freply = srep.substring(7); // prints out the Servers reply.
+				stoken = new StringTokenizer(freply, ",");	//creation of the tokens to be printed separated by comma.	
 				while(stoken.hasMoreTokens())
 					System.out.println(stoken.nextToken());	
 				System.out.println("-------------");
@@ -132,9 +138,9 @@ public class Client
 		sport = Integer.decode(args[1]);
 		path = args[2];
 		c = new Client(serverIP, sport, path);
-		c.initialize();
-		c.signIN();
-		c.searchMode();	
+		c.initialize();  //initializing the connection.
+		c.signIN();	// signin
+		c.searchMode();	//functionality of search and getting Server's replies.
 
 	}
 
