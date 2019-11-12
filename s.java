@@ -24,7 +24,8 @@ class ServerThread extends Thread
 		System.out.println("Accepted Connection");
 
 	}
-
+	
+	//prints the current file list for debug.
 	public static void printFlist()
 	{
 
@@ -107,36 +108,74 @@ class ServerThread extends Thread
 						System.out.println(tosearch);
 						StringTokenizer st = new StringTokenizer(tosearch,","); 
 						ArrayList keywords = new ArrayList();
-
+						
+						//creating a StringTokenizer st to get the keywords.
 						while(st.hasMoreTokens()) 
 							keywords.add(st.nextToken());
 						
 						for( int i = 0; i <  keywords.size(); i++)
 							System.out.println(keywords.get(i));
 
-						// perform search over the declared shared files among the connected users.
 						String searchReply = "Results";
 						//String searchReply = "Results\n";
-					
+						ArrayList multiple = new ArrayList();	
+						ArrayList restmul = new ArrayList();	
+						// perform search over the declared shared files among the connected users.
+						
 						for( int i = 0; i < connected; i++) {
-
+							
 							StringTokenizer fst = new StringTokenizer(flist.get(i).toString(),",");	
 							// simple search with one keyword.
 							ArrayList tmfiles = new ArrayList();
 							// pass files of each index to tmfiles for contain check afterwards.
 							while(fst.hasMoreTokens())
 								tmfiles.add(fst.nextToken());
+							//fst has the files of each different connected client.	
+							//we add that to tmfiles array-list.
 							
+							//traversing the array-list tmfiles and if we find a string that contains the FIRST keyword we add it to multiple array-list.
 							for(int j = 0; j < tmfiles.size(); j++) 
 								if(tmfiles.get(j).toString().contains(keywords.get(0).toString()) == true) {
 									searchReply = searchReply + tmfiles.get(j).toString() + ":" + ilist.get(i).toString() + ":" + plist.get(i).toString() + ",";
-								//	pw.println(searchReply);
-								//	pw.flush();
+									multiple.add( tmfiles.get(j).toString());
+									restmul.add( tmfiles.get(j).toString() + ":" + ilist.get(i).toString() + ":" + plist.get(i).toString() + ",");
 								}
 						}
+
+						System.out.println("Search rep: " +searchReply);
+						System.out.println("restMul: " +restmul);
+						System.out.println("restMulsize: " +restmul.size());
+						System.out.println("HERE EXO");
+						System.out.println("multiple: " +multiple);
+						System.out.println("multiplesize: " +multiple.size());
+						
+						// if keywords are more than 1, we will pass the ArrayList over and over like with a sieve and see what remains.
+						if(keywords.size() > 1) {
+							searchReply = "result ";
+							for(int k = 1; k < keywords.size(); k++) {	
+							
+								System.out.println("Checkk for : key[ "+keywords.get(k).toString());
+								ArrayList forchecks = new ArrayList();
+								forchecks = multiple; // each loop we get updated with removed elements. 
+								for(int i = 0; i < forchecks.size(); i++) {
+									
+									if(multiple.get(i).toString().contains(keywords.get(k).toString()) == true) 
+											;
+									else {
+										System.out.println("Removing");
+										restmul.remove(i);
+										multiple.remove(i);
+										i-=1; // decrement because we also removed one.
+									}
+								}
+							}
+							for(int i = 0; i < restmul.size(); i++)  // form the reply
+								searchReply = searchReply + restmul.get(i).toString();
+
+						}
+
 						// reply to the client.
 						searchReply = searchReply + "\n";
-						//searchReply = "This is reply.";
 						pw.println(searchReply);
 						pw.flush();
 						System.out.println("Replied to SearchRequest");
@@ -146,10 +185,9 @@ class ServerThread extends Thread
 
 						if( (tmp[0] == 's') && (tmp[1] == 'i') && (tmp[2] == 'g') && (tmp[3] == 'n') && (tmp[4] == 'o') && (tmp[5] == 'u') && (tmp[6] == 't') ) {
 							
-							//synchronized(mutex) {
-								System.out.println("Signout message");		///// TO-DO here remove from lists.
-								//get index to remove from all lists.	
-							
+							synchronized(mutex) {
+								System.out.println("Signout message");
+								//get index of the particular client to remove from all lists.	
 								for(int i = 0; i < connected; i++)
 									if( (int) plist.get(i) == incomingPort)
 										delindx = i;	
@@ -158,7 +196,7 @@ class ServerThread extends Thread
 								ilist.remove(delindx);
 								flist.remove(delindx);
 								connected -= 1;				
-						//	}					
+							}					
 
 						}
 					}
@@ -195,6 +233,7 @@ class ServerThread extends Thread
 
 			try
 			{
+				//returns a new socket(client socket) and is passed to the thread as an argument..
 				clientSocket = serverSocket.accept();
 				new ServerThread(clientSocket).start();
 			}
@@ -207,4 +246,3 @@ class ServerThread extends Thread
 	}
 
 }
-
